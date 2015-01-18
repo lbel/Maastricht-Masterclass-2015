@@ -1,6 +1,10 @@
 
 def MassFit() :
 
+   print "************************************"
+   print "* Doing mass fit                   *"
+   print "************************************"
+
    f = TFile.Open("workspace.root")
    w = f.Get("w")
    assert(isinstance(w, RooWorkspace))

@@ -1,5 +1,14 @@
 
 def TimeOscFit(offset = 0.0, amplitude = 40.0, period = 0.002, phase = 0.0, lifetime = 0.0015) :
+   
+   print "************************************"
+   print "* Doing time oscillation 'fit':    *"
+   print "* offset    = " + str(offset)
+   print "* amplitude = " + str(amplitude)
+   print "* period    = " + str(period)
+   print "* phase     = " + str(phase)
+   print "* lifetime  = " + str(lifetime)
+   print "************************************"
 
    f = TFile.Open("workspace.root")
    w = f.Get("w")
