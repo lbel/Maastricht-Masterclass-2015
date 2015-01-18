@@ -1,25 +1,49 @@
+
 from array import array
-from ROOT import *
 from sys import stdout
 
-################################################################################
-# This is where you input your selection criteria ##############################
-################################################################################
+def Selection(Bs_Mass = (5330,5400), 
+              Ds_Mass = (1955, 1985), 
+              Bs_Lifetime = (0, 0.01) ) :
 
-Bs_Mass = (5330, 5400) #MeV
-Ds_Mass = (1955, 1985) #MeV
-Bs_Lifetime = (0, 0.02) #ps
+   wp = WorkspacePreparer(Bs_Mass, Ds_Mass, Bs_Lifetime)
+   wp.prepareWorkspace()
+   wp.saveWorkspace()
 
-################################################################################
-# END ##########################################################################
-################################################################################
+   selectedFile = TFile.Open("data/data_selected.root")
+   selectedTree = selectedFile.Get("DecayTree")
+   c1 = TCanvas("c1", "Bs mass")
+   c1.cd()
+   selectedTree.Draw("lab0_MM")
+   c1.Update()
+   c2 = TCanvas("c2", "Ds mass")
+   c2.cd()
+   selectedTree.Draw("lab2_MM")
+   c2.Update()
+   c3 = TCanvas("c3", "Bs lifetime")
+   c3.cd()
+   selectedTree.Draw("lab0_TAU")
+   c3.Update()
+   raw_input("Press any key to continue.")
+   selectedFile.Close()
+
+
 
 class WorkspacePreparer:
 
-    def __init__(self):
-        self.massVar = RooRealVar("lab0_MM", "Bs mass (MeV)", Bs_Mass[0], Bs_Mass[1])
+    def __init__(self, Bs_Mass, Ds_Mass, Bs_Lifetime):
+        self.Bs_Mass = Bs_Mass
+        self.Ds_Mass = Ds_Mass
+        self.Bs_Lifetime = Bs_Lifetime
+
+        self.massVar = RooRealVar("lab0_MM", "Bs mass", Bs_Mass[0], Bs_Mass[1], "MeV")
+        self.decayVar = RooRealVar("lab0_TAU", "Bs decay time", Bs_Lifetime[0], Bs_Lifetime[1], "ns")
+        self.tagDecision = RooRealVar("lab0_BsTaggingTool_TAGDECISION","Bs tag decision", -2, 2)
+        self.tagOmega = RooRealVar("lab0_BsTaggingTool_TAGOMEGA","Bs tag omega", 0, 1)
+        self.tagDecisionOS = RooRealVar("lab0_BsTaggingTool_TAGDECISION_OS","Bs tag decision OS", -2, 2)
+        self.tagOmegaOS = RooRealVar("lab0_BsTaggingTool_TAGOMEGA_OS","Bs tag omega OS", 0, 1)
         self.varsVarList = []
-        self.workspaceList = [] #items that should go into the workspace
+        self.workspaceList = [self.tagDecision, self.tagOmega, self.tagDecisionOS, self.tagOmegaOS]
 
     def prepareWorkspace(self):
         f = TFile.Open("data/data.root")
@@ -43,12 +67,12 @@ class WorkspacePreparer:
 
     def obtainDataset(self, tree):
         dataSetName = "BsDsPi_data"
-        lab0M_min = Bs_Mass[0]
-        lab0M_max = Bs_Mass[1]
-        lab2M_min = Ds_Mass[0]
-        lab2M_max = Ds_Mass[1]
-        lab0TAU_min = Bs_Lifetime[0]
-        lab0TAU_max = Bs_Lifetime[1]
+        lab0M_min = self.Bs_Mass[0]
+        lab0M_max = self.Bs_Mass[1]
+        lab2M_min = self.Ds_Mass[0]
+        lab2M_max = self.Ds_Mass[1]
+        lab0TAU_min = self.Bs_Lifetime[0]
+        lab0TAU_max = self.Bs_Lifetime[1]
 
         # Tree to write to
         filetowrite = TFile("data/data_selected.root", "RECREATE")
@@ -56,12 +80,15 @@ class WorkspacePreparer:
         ## RooArgSet on which the data/dataset will be based
         varsSet = RooArgSet()
         varsSet.add(self.massVar)
+        varsSet.add(self.decayVar)
 
         print "************************************"
         print "* Selecting data events for BsDsPi *"
         print "************************************"
 
         cuts = "(lab0_MM > %f) && (lab0_MM < %f) && (lab2_MM > %f) && (lab2_MM < %f) && (lab0_TAU > %f) && (lab0_TAU < %f)" % (lab0M_min, lab0M_max, lab2M_min, lab2M_max, lab0TAU_min, lab0TAU_max)
+        cuts += " && ((lab0_BsTaggingTool_TAGOMEGA < 0.49 && lab0_BsTaggingTool_TAGDECISION != 0) || \
+              (lab0_BsTaggingTool_TAGOMEGA_OS < 0.49 && lab0_BsTaggingTool_TAGDECISION_OS != 0))"
         newTree = tree.CopyTree(cuts)
         newEntries = newTree.GetEntries()
 
@@ -72,28 +99,24 @@ class WorkspacePreparer:
         tree.Delete()
 
         dataSet = RooDataSet(dataSetName, dataSetName, newTree, varsSet)
-
         self.workspaceList.append(dataSet)
+
+        # Create osc plot
+        newTree.Draw("lab0_TAU>>tagPos(100,0,0.01)",   "(lab0_BsTaggingTool_TAGDECISION    ==  1)*(1-2*lab0_BsTaggingTool_TAGOMEGA   )")
+        newTree.Draw("lab0_TAU>>tagNeg(100,0,0.01)",   "(lab0_BsTaggingTool_TAGDECISION    == -1)*(1-2*lab0_BsTaggingTool_TAGOMEGA   )")
+        newTree.Draw("lab0_TAU>>tagPosOS(100,0,0.01)", "(lab0_BsTaggingTool_TAGDECISION_OS ==  1)*(1-2*lab0_BsTaggingTool_TAGOMEGA_OS)")
+        newTree.Draw("lab0_TAU>>tagNegOS(100,0,0.01)", "(lab0_BsTaggingTool_TAGDECISION_OS == -1)*(1-2*lab0_BsTaggingTool_TAGOMEGA_OS)")
+        tagPos   = gDirectory.Get("tagPos"  )
+        tagNeg   = gDirectory.Get("tagNeg"  )
+        tagPosOS = gDirectory.Get("tagPosOS")
+        tagNegOS = gDirectory.Get("tagNegOS")
+        tagPos.Add(tagPosOS)
+        tagNeg.Add(tagNegOS)
+        tagPos.Add(tagNeg, -1)
+        oscHist = RooDataHist(dataSetName+"_oscPlot", dataSetName+"_oscPlot", RooArgList(self.decayVar), tagPos)
+        self.workspaceList.append(oscHist)
 
         filetowrite.cd()
         filetowrite.Write()
         filetowrite.Close()
-
-wp = WorkspacePreparer()
-wp.prepareWorkspace()
-wp.saveWorkspace()
-
-selectedFile = TFile.Open("data/data_selected.root")
-selectedTree = selectedFile.Get("DecayTree")
-c1 = TCanvas("c1", "Bs mass")
-c1.cd()
-selectedTree.Draw("lab0_MM")
-c2 = TCanvas("c2", "Ds mass")
-c2.cd()
-selectedTree.Draw("lab2_MM")
-c3 = TCanvas("c3", "Bs lifetime")
-c3.cd()
-selectedTree.Draw("lab0_TAU")
-raw_input("Press any key to continue.")
-selectedFile.Close()
 
