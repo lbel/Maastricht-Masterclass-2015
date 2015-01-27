@@ -24,6 +24,6 @@ def MassFit() :
    model.plotOn(frame)#, LineColor(kBlue))
    frame.Draw()
    cMass.Update()
-   raw_input("Press any key to continue.")
+   raw_input("Press enter to continue.")
    f.Close()
 

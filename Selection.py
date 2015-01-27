@@ -2,42 +2,35 @@
 from array import array
 from sys import stdout
 
-def Selection(Bs_Mass = (5330,5400), 
-              Ds_Mass = (1955, 1985), 
-              Bs_Lifetime = (0, 0.01) ) :
+def Selection(Bs_Mass, Ds_Mass):
 
-   wp = WorkspacePreparer(Bs_Mass, Ds_Mass, Bs_Lifetime)
+   wp = WorkspacePreparer(Bs_Mass, Ds_Mass)
    wp.prepareWorkspace()
    wp.saveWorkspace()
 
    selectedFile = TFile.Open("data/data_selected.root")
    selectedTree = selectedFile.Get("DecayTree")
-   c1 = TCanvas("c1", "Bs mass")
-   c1.cd()
+   cBsMass = TCanvas("cBsMass", "Bs mass")
+   cBsMass.cd()
    selectedTree.Draw("lab0_MM")
-   c1.Update()
-   c2 = TCanvas("c2", "Ds mass")
-   c2.cd()
+   cBsMass.Update()
+   cDsMass = TCanvas("cDsMass", "Ds mass")
+   cDsMass.cd()
    selectedTree.Draw("lab2_MM")
-   c2.Update()
-   c3 = TCanvas("c3", "Bs lifetime")
-   c3.cd()
-   selectedTree.Draw("lab0_TAU")
-   c3.Update()
-   raw_input("Press any key to continue.")
+   cDsMass.Update()
+   raw_input("Press enter to continue.")
    selectedFile.Close()
 
 
 
 class WorkspacePreparer:
 
-    def __init__(self, Bs_Mass, Ds_Mass, Bs_Lifetime):
+    def __init__(self, Bs_Mass, Ds_Mass):
         self.Bs_Mass = Bs_Mass
         self.Ds_Mass = Ds_Mass
-        self.Bs_Lifetime = Bs_Lifetime
 
         self.massVar = RooRealVar("lab0_MM", "Bs mass", Bs_Mass[0], Bs_Mass[1], "MeV")
-        self.decayVar = RooRealVar("lab0_TAU", "Bs decay time", Bs_Lifetime[0], Bs_Lifetime[1], "ns")
+        self.decayVar = RooRealVar("lab0_TAU", "Bs decay time", 0., .02, "ns")
         self.tagDecision = RooRealVar("lab0_BsTaggingTool_TAGDECISION","Bs tag decision", -2, 2)
         self.tagOmega = RooRealVar("lab0_BsTaggingTool_TAGOMEGA","Bs tag omega", 0, 1)
         self.tagDecisionOS = RooRealVar("lab0_BsTaggingTool_TAGDECISION_OS","Bs tag decision OS", -2, 2)
@@ -71,8 +64,6 @@ class WorkspacePreparer:
         lab0M_max = self.Bs_Mass[1]
         lab2M_min = self.Ds_Mass[0]
         lab2M_max = self.Ds_Mass[1]
-        lab0TAU_min = self.Bs_Lifetime[0]
-        lab0TAU_max = self.Bs_Lifetime[1]
 
         # Tree to write to
         filetowrite = TFile("data/data_selected.root", "RECREATE")
@@ -81,14 +72,16 @@ class WorkspacePreparer:
         varsSet = RooArgSet()
         varsSet.add(self.massVar)
         varsSet.add(self.decayVar)
+        varsSet.add(self.tagDecision)
+        varsSet.add(self.tagOmega)
+        varsSet.add(self.tagDecisionOS)
+        varsSet.add(self.tagOmegaOS)
 
         print "************************************"
         print "* Selecting data events for BsDsPi *"
         print "************************************"
 
-        cuts = "(lab0_MM > %f) && (lab0_MM < %f) && (lab2_MM > %f) && (lab2_MM < %f) && (lab0_TAU > %f) && (lab0_TAU < %f)" % (lab0M_min, lab0M_max, lab2M_min, lab2M_max, lab0TAU_min, lab0TAU_max)
-        cuts += " && ((lab0_BsTaggingTool_TAGOMEGA < 0.49 && lab0_BsTaggingTool_TAGDECISION != 0) || \
-              (lab0_BsTaggingTool_TAGOMEGA_OS < 0.49 && lab0_BsTaggingTool_TAGDECISION_OS != 0))"
+        cuts = "(lab0_MM > %f) && (lab0_MM < %f) && (lab2_MM > %f) && (lab2_MM < %f)" % (lab0M_min, lab0M_max, lab2M_min, lab2M_max)
         newTree = tree.CopyTree(cuts)
         newEntries = newTree.GetEntries()
 

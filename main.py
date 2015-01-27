@@ -1,3 +1,4 @@
+#!/bin/env python
 
 ##################################
 #== IMPORTS ======================
@@ -13,11 +14,10 @@ execfile('./TimeOscFit.py')
 #== BODY ======================
 ##################################
 
-#Bs_Mass      = (5330, 5400)
-#Ds_Mass      = (1955, 1985) 
-#Bs_Lifetime  = (0   , 0.01)
+Bs_Mass      = (5350, 5450)#(4000, 6000)
+Ds_Mass      = (1950, 1990)#(1800, 2200)
 
-#Selection(Bs_Mass, Ds_Mass, Bs_Lifetime)
+Selection(Bs_Mass, Ds_Mass)
 
 ##################################
 
@@ -25,7 +25,9 @@ execfile('./TimeOscFit.py')
 
 ##################################
 
-#DecayFit()
+Bs_Lifetime  = (0, 0.01)
+
+DecayFit(Bs_Lifetime)
 
 ##################################
 
@@ -35,7 +37,7 @@ period     = 0.002
 phase      = 0.0
 lifetime   = 0.0015
 
-TimeOscFit(offset, amplitude, period, phase, lifetime)
+#TimeOscFit(offset, amplitude, period, phase, lifetime)
 
 
 ##################################
