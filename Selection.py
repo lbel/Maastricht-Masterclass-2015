@@ -44,8 +44,10 @@ class WorkspacePreparer:
         self.tagOmega = RooRealVar("lab0_BsTaggingTool_TAGOMEGA","Bs tag omega", 0, 1)
         self.tagDecisionOS = RooRealVar("lab0_BsTaggingTool_TAGDECISION_OS","Bs tag decision OS", -2, 2)
         self.tagOmegaOS = RooRealVar("lab0_BsTaggingTool_TAGOMEGA_OS","Bs tag omega OS", 0, 1)
+        self.piID = RooRealVar("lab1_ID", "Pion ID", -600, 600) 
         self.varsVarList = []
-        self.workspaceList = [self.tagDecision, self.tagOmega, self.tagDecisionOS, self.tagOmegaOS]
+        #self.workspaceList = [self.tagDecision, self.tagOmega, self.tagDecisionOS, self.tagOmegaOS]
+        self.workspaceList = []
 
     def prepareWorkspace(self):
         f = TFile.Open("data/data.root")
@@ -88,6 +90,7 @@ class WorkspacePreparer:
         varsSet.add(self.tagOmega)      
         varsSet.add(self.tagDecisionOS)
         varsSet.add(self.tagOmegaOS)    
+        varsSet.add(self.piID)
 
         print "************************************"
         print "* Selecting data events for BsDsPi *"

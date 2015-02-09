@@ -20,7 +20,7 @@ gStyle.SetLineColor(0)
 
 #Bs_Mass      = (5200, 5600)
 #Ds_Mass      = (1890, 2070) 
-Bs_Mass      = (5330, 5400)
+Bs_Mass      = (5330, 5410)
 Ds_Mass      = (1955, 1985) 
 Bs_Lifetime  = (0.  , 0.01)
 
@@ -37,20 +37,21 @@ Bs_Lifetime  = (0.  , 0.01)
 
 omegaCut = "0.49"
 
-#DecayFit("Bs"    , omegaCut)
-#DecayFit("antiBs", omegaCut)
+DecayFit("Bs"    , "Bs",     omegaCut)
+DecayFit("Bs"    , "antiBs", omegaCut)
+DecayFit("antiBs", "Bs",     omegaCut)
+DecayFit("antiBs", "antiBs", omegaCut)
 
 
 ##################################
 
 offset     = 0.0
-amplitude  = 100.0
-period     = 0.002
+amplitude  = 0.2
+period     = 0.00178
 phase      = 0.0
-lifetime   = 0.0017
 
-TimeOscFit(offset, amplitude, period, phase, lifetime,
-    omegaCut, Bs_Mass, Ds_Mass, Bs_Lifetime, useOmegaWeights = True )
+#TimeOscFit(offset, amplitude, period, phase,
+#    omegaCut, Bs_Mass, Ds_Mass, Bs_Lifetime)
 
 ##################################
 #eof

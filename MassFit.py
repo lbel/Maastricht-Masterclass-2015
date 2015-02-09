@@ -41,7 +41,7 @@ def MassFit(particle) :
    cMass = TCanvas("cMass_"+particle,"cMass"+particle)
    frame = mass.frame()
    frame.SetTitle("")
-   data.plotOn(frame)
+   data.plotOn(frame, RooFit.DataError(RooAbsData.SumW2))
    model.plotOn(frame, RooFit.LineColor(4 ) ) #9
    model.plotOn(frame, RooFit.LineColor(8 ), RooFit.LineStyle(2), RooFit.Components("sigModel"), RooFit.Name("sig") )
    model.plotOn(frame, RooFit.LineColor(46), RooFit.LineStyle(2), RooFit.Components("bkgModel"), RooFit.Name("bkg") )
