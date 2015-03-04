@@ -1,57 +1,52 @@
+#!/bin/env python
 
 ##################################
 #== IMPORTS ======================
 ##################################
 
 from ROOT import *
-execfile('./Selection.py')
-execfile('./MassFit.py')
-execfile('./DecayFit.py')
-execfile('./TimeOscFit.py')
 
+gROOT.ProcessLine(".x lhcbStyle.C")
 gROOT.SetStyle("Plain")
-gStyle.SetFillColor(0)
-gStyle.SetFillStyle(0)
-gStyle.SetLineColor(0)
+gStyle.SetOptStat(0)
+gStyle.SetLegendFont(132);
+gROOT.ForceStyle();
+TH1.SetDefaultSumw2(True)
+
+execfile('./scripts/Selection.py')
+execfile('./scripts/MassFit.py')
+execfile('./scripts/DecayFit.py')
+execfile('./scripts/TimeOscFit.py')
 
 ##################################
-#== BODY ======================
+#== BODY =========================
 ##################################
 
-#Bs_Mass      = (5200, 5600)
-#Ds_Mass      = (1890, 2070) 
-Bs_Mass      = (5330, 5410)
-Ds_Mass      = (1955, 1985) 
-Bs_Lifetime  = (0.  , 0.01)
+# SELECTION ######################
+Bs_Mass      = (4800, 6000)
+Ds_Mass      = (1800, 2100)
+Bs_Lifetime  = (0.0 , 0.01)
 
 #Selection(Bs_Mass, Ds_Mass, Bs_Lifetime)
 
+# MASS FITS ######################
 
-##################################
-
-#MassFit("Bs")
 #MassFit("Ds")
+#MassFit("Bs")
 
+# DECAY-TIME FITS ################
 
-##################################
+omegaCut = 0.5
 
-omegaCut = "0.49"
+#DecayFits(omegaCut, Bs_Lifetime)
 
-DecayFit("Bs"    , "Bs",     omegaCut)
-DecayFit("Bs"    , "antiBs", omegaCut)
-DecayFit("antiBs", "Bs",     omegaCut)
-DecayFit("antiBs", "antiBs", omegaCut)
-
-
-##################################
+# OSCILLATION FIT ################
 
 offset     = 0.0
-amplitude  = 0.2
-period     = 0.00178
+amplitude  = 0.45
+period     = 0.001
 phase      = 0.0
 
-#TimeOscFit(offset, amplitude, period, phase,
-#    omegaCut, Bs_Mass, Ds_Mass, Bs_Lifetime)
+#TimeOscFit(offset, amplitude, period, phase, omegaCut, Bs_Mass, Ds_Mass, Bs_Lifetime)
 
 ##################################
-#eof

@@ -1,10 +1,14 @@
-
 from array import array
 from sys import stdout
 
-def Selection(Bs_Mass = (5330,5400), 
-              Ds_Mass = (1955, 1985), 
+def Selection(Bs_Mass = (5330,5400),
+              Ds_Mass = (1955, 1985),
               Bs_Lifetime = (0, 0.01) ) :
+
+   if raw_input("Execute selection? [y/N] ") not in ["y", "Y"]:
+       return
+
+   nbins = "200"
 
    wp = WorkspacePreparer(Bs_Mass, Ds_Mass, Bs_Lifetime)
    wp.prepareWorkspace()
@@ -12,18 +16,39 @@ def Selection(Bs_Mass = (5330,5400),
 
    selectedFile = TFile.Open("data/data_selected.root")
    selectedTree = selectedFile.Get("DecayTree")
-   c1 = TCanvas("c1", "Bs mass")
+   c1 = TCanvas("c1", "Bs Mass [MeV/c^{2}]")
    c1.cd()
-   selectedTree.Draw("lab0_MM")
+   selectedTree.Draw("lab0_MM>>(" + nbins + ")", "(1==1)", "hist")
+   bsMassGraph = c1.GetPrimitive("").Clone("BsMass")
+   bsMassGraph.SetStats(0)
+   bsMassGraph.SetTitle("")
    c1.Update()
-   c2 = TCanvas("c2", "Ds mass")
+   c1.SetTitle("Bs Mass")
+   bsMassGraph.GetXaxis().SetTitle("B_{s} Mass [MeV/c^{2}]")
+   bsMassGraph.Draw()
+
+   c2 = TCanvas("c2", "Ds Mass")
    c2.cd()
-   selectedTree.Draw("lab2_MM")
+   selectedTree.Draw("lab2_MM>>(" + nbins + ")", "(1==1)", "hist")
+   graphdsmass = c2.GetPrimitive("").Clone("DsMass")
+   graphdsmass.GetXaxis().SetTitle("D_{s} Mass [MeV/c^{2}]")
+#   graphdsmass.GetYaxis().SetTitle("Events")
+   graphdsmass.SetStats(0)
+   graphdsmass.SetTitle("")
+   graphdsmass.Draw()
    c2.Update()
-   c3 = TCanvas("c3", "Bs lifetime")
+
+
+   c3 = TCanvas("c3", "Bs Lifetime")
    c3.cd()
-   selectedTree.Draw("lab0_TAU")
+   selectedTree.Draw("lab0_TAU>>(" + nbins + ")")
+   lifetimeGraph = c3.GetPrimitive("").Clone("BsLifetime")
+   lifetimeGraph.SetStats(0)
+   lifetimeGraph.GetXaxis().SetTitle("B_{s} Lifetime [ns]")
+   lifetimeGraph.SetTitle("")
+   lifetimeGraph.Draw()
    c3.Update()
+
    raw_input("Press enter to continue.")
    selectedFile.Close()
 
@@ -44,7 +69,7 @@ class WorkspacePreparer:
         self.tagOmega = RooRealVar("lab0_BsTaggingTool_TAGOMEGA","Bs tag omega", 0, 1)
         self.tagDecisionOS = RooRealVar("lab0_BsTaggingTool_TAGDECISION_OS","Bs tag decision OS", -2, 2)
         self.tagOmegaOS = RooRealVar("lab0_BsTaggingTool_TAGOMEGA_OS","Bs tag omega OS", 0, 1)
-        self.piID = RooRealVar("lab1_ID", "Pion ID", -600, 600) 
+        self.piID = RooRealVar("lab1_ID", "Pion ID", -600, 600)
         self.varsVarList = []
         #self.workspaceList = [self.tagDecision, self.tagOmega, self.tagDecisionOS, self.tagOmegaOS]
         self.workspaceList = []
@@ -86,10 +111,10 @@ class WorkspacePreparer:
         varsSet.add(self.massBsVar)
         varsSet.add(self.massDsVar)
         varsSet.add(self.decayVar)
-        varsSet.add(self.tagDecision)   
-        varsSet.add(self.tagOmega)      
+        varsSet.add(self.tagDecision)
+        varsSet.add(self.tagOmega)
         varsSet.add(self.tagDecisionOS)
-        varsSet.add(self.tagOmegaOS)    
+        varsSet.add(self.tagOmegaOS)
         varsSet.add(self.piID)
 
         print "************************************"
